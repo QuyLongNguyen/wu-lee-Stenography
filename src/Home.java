@@ -203,30 +203,76 @@ public class Home extends JFrame {
 			}
 		});
 		btn_embedded.addActionListener(new ActionListener() {
+			
 			public void actionPerformed(ActionEvent e) {
+				System.out.println(img.getHeight());
+				System.out.println(img.getWidth());
+				
 				try {
-					BufferedImage gr = new BufferedImage(img.getWidth(), img.getHeight() , BufferedImage.TYPE_INT_ARGB);
-					for(int i=0;i<img.getHeight();i++){
-						for(int j=0;j<img.getWidth();j++) {
-							Color c = new Color(img.getRGB(j, i));
+					String text ="";
+					BufferedImage out_img = new BufferedImage(img.getWidth(), img.getHeight() , BufferedImage.TYPE_INT_ARGB);
+					Integer[][] diff_matrix = new Integer[img.getHeight()][img.getWidth()/2];
+					System.out.println(diff_matrix.length);
+					System.out.println(diff_matrix[0].length);
+					
+				
+					
+				
+					int string_offset = 0;
+					for(int i=0;i<diff_matrix.length;i++){
+						for(int j=0;j<diff_matrix[0].length;j++) {
+							Color c = new Color(img.getRGB(j*2, i));
+							Color c_p = new Color(img.getRGB(j*2+1, i));
 							int p = c.getRed();
+					
+							int p_p = c_p.getRed();
 							
+							
+							diff_matrix[i][j] = p_p - p;
+							int t = diff_matrix[i][j];
+							System.out.println(Math.abs(t));
+							int[] p_range = MyCaculation.inRange(Math.abs(t));
+						
+							
+							int n = MyCaculation.log2(p_range[1]-p_range[0]+1);
+							String embed = text_message.getText().substring(string_offset, string_offset+n);
+							string_offset += n;
+							int embed_number = Integer.parseInt(embed, 2);
+							int diff_matrix_new = 0 ;
+							if(diff_matrix[i][j] >= 0 ) {
+								diff_matrix_new = p_range[0]+embed_number;
+							}
+							else {
+								diff_matrix_new = -(p_range[0]+embed_number);
+							}
+							int p_new = 0 ,p_p_new = 0;
+							if(diff_matrix[i][j] % 2 == 0) {
+								p_new = p- MyCaculation.roundUp((diff_matrix_new-diff_matrix[i][j])/2);
+								p_p_new = p_p + MyCaculation.roundDown((diff_matrix_new-diff_matrix[i][j])/2);
+							}
+							else {
+								p_new = p- MyCaculation.roundDown((diff_matrix_new-diff_matrix[i][j])/2);
+								p_p_new = p_p + MyCaculation.roundUp((diff_matrix_new-diff_matrix[i][j])/2);
+							}
 							
 							Color gcolor = new Color(p,p,p,c.getAlpha());
-							gr.setRGB(j,i,gcolor.getRGB());
-							System.out.println(gcolor.getRGB());
+							out_img.setRGB(j*2,i,gcolor.getRGB());
+							 gcolor = new Color(p_p,p_p,p_p,c_p.getAlpha());
+							out_img.setRGB(j*2+1,i,gcolor.getRGB());
+							
 						}
 				
 				}
-					Image dimg = gr.getScaledInstance(out_image.getWidth()	,out_image.getHeight(), Image.SCALE_SMOOTH);
+					Image dimg = out_img.getScaledInstance(out_image.getWidth()	,out_image.getHeight(), Image.SCALE_SMOOTH);
 					ImageIcon icon = new ImageIcon(dimg);
 					out_image.setIcon(icon);
 					
+				
 				}
 				catch (Exception ex) {
 					// TODO: handle exception
 					ex.printStackTrace();
-				}
+				} 
 				
 			}
 		});
