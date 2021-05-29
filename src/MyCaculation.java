@@ -61,10 +61,46 @@ public class MyCaculation {
 
         return result;
     }
-    
-    
+    public static String fixLengthOfBin(String input,int n) {
+    	while(input.length() < n) {
+    		input = "0"+input;
+    	}
+    	return input;
+    }
+    public static int[] convertTextStringToDecArray(String input) {
+    	int[] dec = new int[input.length()-1];
+    	for(int i=0;i<dec.length;i++) {
+    		dec[i] = input.charAt(i);
+    	}
+    	return dec;
+    }
+    public static String convertDecArrayToTextString(int[] input) {
+    	String result = "";
+    	for(int i=0;i<input.length;i++) {
+    		result += (char)input[i];
+    	}
+    	return result;
+    }
+    public static String convertDecArrayToBin(int[] input) {
+    	String result = "";
+    	for(int i=0;i<input.length;i++) {
+    		String t =  Integer.toBinaryString(input[i]);
+    		t = fixLengthOfBin(t, 8);
+    		result += t; 
+    	}
+    	return result;
+    }
+    public static int[] convertBinToDecArray(String input) {
+    	int[] dec = new int[input.length()/8];
+    	for(int i = dec.length-1 ; i >= 0 ; i--) {
+    		String t = input.substring(i*8,(i+1)*8);
+    		dec[i] = Integer.parseInt(t, 2);
+    	}
+    	return dec;
+    }
 	public static void main(String[] args) {
-		System.out.println(convertStringToBinary("Hello"));
+		
+	
 	}
 }
 	

@@ -4,6 +4,8 @@ import java.awt.EventQueue;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
@@ -31,6 +33,8 @@ import javax.swing.JFileChooser;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+import java.util.Base64;
 import java.awt.event.ActionEvent;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -46,7 +50,7 @@ public class Home extends JFrame {
 	private JTextField text_key;
 	private BufferedImage img;
 	private BufferedImage emb_img;
-	private JTextField textField;
+	private JTextField size_field;
 
 	/**
 	 * Launch the application.
@@ -68,6 +72,7 @@ public class Home extends JFrame {
 	 * Create the frame.
 	 */
 	public Home() {
+		
 		img = null;
 		setFont(new Font("Arial", Font.PLAIN, 15));
 		setTitle("Gi\u00E2\u0301u tin trong a\u0309nh tr\u00EAn sai ph\u00E2n");
@@ -82,16 +87,10 @@ public class Home extends JFrame {
 		contentPane.add(menuBar);
 		menuBar.setFont(new Font("Verdana", Font.PLAIN, 14));
 
-		JMenu mnMaHoa = new JMenu("Ma\u0303 ho\u0301a");
-		
+		JMenu mnMaHoa = new JMenu("          ");
 
 		mnMaHoa.setFont(new Font("Verdana", Font.PLAIN, 14));
 		menuBar.add(mnMaHoa);
-
-		JMenu menu_decryption = new JMenu("Gia\u0309i ma\u0303");
-		
-		menu_decryption.setFont(new Font("Verdana", Font.PLAIN, 14));
-		menuBar.add(menu_decryption);
 
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		tabbedPane.setBounds(0, 23, 888, 665);
@@ -111,7 +110,7 @@ public class Home extends JFrame {
 		panel_text.add(lblNewLabel);
 		lblNewLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
 
-		JLabel lblKey = new JLabel("Kho\u0301a :");
+		JLabel lblKey = new JLabel("Khóa AES:");
 		lblKey.setBounds(10, 92, 90, 57);
 		panel_text.add(lblKey);
 		lblKey.setFont(new Font("Tahoma", Font.PLAIN, 14));
@@ -122,24 +121,56 @@ public class Home extends JFrame {
 		lblBanMa.setFont(new Font("Tahoma", Font.PLAIN, 14));
 
 		JTextArea text_message = new JTextArea();
+		text_message.setFont(new Font("Monospaced", Font.PLAIN, 14));
 		text_message.setBounds(109, 10, 569, 57);
 
-		JScrollPane sp = new JScrollPane(text_message);
-		sp.setBounds(109, 10, 569, 57);
+		JScrollPane sp1 = new JScrollPane(text_message);
+		sp1.setBounds(109, 10, 569, 57);
 		text_message.setWrapStyleWord(true);
-		panel_text.add(sp);
+		panel_text.add(sp1);
 		text_key = new JTextField();
-		text_key.setBounds(110, 105, 381, 36);
+		text_key.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		text_key.setBounds(110, 105, 363, 36);
 		panel_text.add(text_key);
 		text_key.setColumns(10);
 
-		JTextArea text_ciphertext = new JTextArea();
-		text_ciphertext.setBounds(110, 184, 569, 57);
-		panel_text.add(text_ciphertext);
+		
+		JTextArea text_cipher = new JTextArea();
+		text_cipher.setFont(new Font("Monospaced", Font.PLAIN, 14));
+		
+		
+		JScrollPane sp2 = new JScrollPane(text_cipher);
+		sp2.setBounds(110, 184, 569, 57);
+		text_cipher.setWrapStyleWord(true);
+		panel_text.add(sp2);
 
 		JButton btn_encrypt = new JButton("Ma\u0303 ho\u0301a");
-		btn_encrypt.setBounds(538, 104, 85, 36);
+		
+		btn_encrypt.setBounds(498, 104, 85, 36);
 		panel_text.add(btn_encrypt);
+		
+		JButton btn_decrypt = new JButton("Giải mã");
+		
+		btn_decrypt.setBounds(593, 104, 85, 36);
+		panel_text.add(btn_decrypt);
+		
+		JLabel lblNewLabel_2 = new JLabel("(ít hơn 16 ký tự)");
+		lblNewLabel_2.setFont(new Font("Tahoma", Font.PLAIN, 12));
+		lblNewLabel_2.setBounds(110, 147, 179, 13);
+		panel_text.add(lblNewLabel_2);
+		
+		JButton btn_delete1 = new JButton("Xóa");
+		
+		btn_delete1.setBounds(694, 30, 57, 36);
+		panel_text.add(btn_delete1);
+		
+		JButton btn_delete3 = new JButton("Xóa");
+		btn_delete3.setBounds(694, 204, 57, 36);
+		panel_text.add(btn_delete3);
+		
+		JButton btn_delete2 = new JButton("Xóa");
+		btn_delete2.setBounds(694, 105, 57, 36);
+		panel_text.add(btn_delete2);
 
 		JPanel panel_image = new JPanel();
 		panel_image.setBounds(41, 294, 812, 309);
@@ -153,11 +184,11 @@ public class Home extends JFrame {
 
 		JButton btn_embedded = new JButton("Nhu\u0301ng tin");
 
-		btn_embedded.setBounds(362, 169, 94, 36);
+		btn_embedded.setBounds(360, 71, 94, 36);
 		panel_image.add(btn_embedded);
 
 		JButton btn_save = new JButton("L\u01B0u a\u0309nh");
-	
+
 		btn_save.setBounds(593, 10, 85, 36);
 		panel_image.add(btn_save);
 
@@ -171,78 +202,79 @@ public class Home extends JFrame {
 		out_image.setBounds(488, 71, 298, 212);
 		panel_image.add(out_image);
 
-		JPanel panel_decrypt = new JPanel();
-		tabbedPane.addTab("New tab", null, panel_decrypt, null);
-		panel_decrypt.setLayout(null);
+		JButton btn_extract = new JButton("Tách tin");
+
+		btn_extract.setBounds(360, 151, 94, 36);
+		panel_image.add(btn_extract);
 		
-		JPanel panel_text_1 = new JPanel();
-		panel_text_1.setLayout(null);
-		panel_text_1.setBounds(45, 329, 812, 274);
-		panel_decrypt.add(panel_text_1);
+		size_field = new JTextField();
+		size_field.setBounds(358, 235, 96, 37);
+		panel_image.add(size_field);
+		size_field.setColumns(10);
 		
-		JLabel lblNewLabel_1 = new JLabel("Thông điệp :");
-		lblNewLabel_1.setFont(new Font("Tahoma", Font.PLAIN, 14));
-		lblNewLabel_1.setBounds(10, 192, 90, 57);
-		panel_text_1.add(lblNewLabel_1);
-		
-		JLabel lblKey_1 = new JLabel("Khóa :");
-		lblKey_1.setFont(new Font("Tahoma", Font.PLAIN, 14));
-		lblKey_1.setBounds(10, 92, 90, 57);
-		panel_text_1.add(lblKey_1);
-		
-		JLabel lblBanMa_1 = new JLabel("Bản mã:");
-		lblBanMa_1.setFont(new Font("Tahoma", Font.PLAIN, 14));
-		lblBanMa_1.setBounds(10, 10, 90, 57);
-		panel_text_1.add(lblBanMa_1);
-		
-		JScrollPane sp_1 = new JScrollPane((Component) null);
-		sp_1.setBounds(110, 192, 569, 57);
-		panel_text_1.add(sp_1);
-		
-		textField = new JTextField();
-		textField.setColumns(10);
-		textField.setBounds(110, 105, 381, 36);
-		panel_text_1.add(textField);
-		
-		JTextArea text_ciphertext_1 = new JTextArea();
-		text_ciphertext_1.setBounds(110, 10, 569, 57);
-		panel_text_1.add(text_ciphertext_1);
-		
-		JButton btn_encrypt_1 = new JButton("Mã hóa");
-		btn_encrypt_1.setBounds(538, 104, 85, 36);
-		panel_text_1.add(btn_encrypt_1);
-		
-		JPanel panel_image_1 = new JPanel();
-		panel_image_1.setLayout(null);
-		panel_image_1.setBounds(45, 10, 812, 309);
-		panel_decrypt.add(panel_image_1);
-		
-		JButton btn_open_1 = new JButton("Mở ảnh");
-		btn_open_1.setBounds(73, 126, 94, 36);
-		panel_image_1.add(btn_open_1);
-		
-		JButton btn_embedded_1 = new JButton("Nhúng tin");
-		btn_embedded_1.setBounds(614, 126, 94, 36);
-		panel_image_1.add(btn_embedded_1);
-		
-		JLabel in_image_1 = new JLabel("");
-		in_image_1.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-		in_image_1.setBounds(246, 47, 298, 212);
-		panel_image_1.add(in_image_1);
-		
+		JLabel lblNewLabel_1 = new JLabel("Khóa tách");
+		lblNewLabel_1.setHorizontalAlignment(SwingConstants.CENTER);
+		lblNewLabel_1.setBounds(370, 197, 68, 36);
+		panel_image.add(lblNewLabel_1);
+
 		mnMaHoa.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				tabbedPane.setSelectedIndex(0);
 			}
 		});
-		
-		menu_decryption.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
+		btn_delete1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				text_message.setText("");
 			}
 		});
-		
+		btn_delete2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				text_key.setText("");
+			}
+		});
+		btn_delete3.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				text_cipher.setText("");
+			}
+		});
+		btn_encrypt.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					while(text_key.getText().length() < 16) {
+						text_key.setText(text_key.getText()+" ");
+					}
+						String originalText = text_message.getText();
+						String key = text_key.getText();
+						SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes(), "AES");
+						Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5PADDING");
+						cipher.init(Cipher.ENCRYPT_MODE, skeySpec);
+						byte[] byteEncrypted = cipher.doFinal(originalText.getBytes());
+						String encrypted = Base64.getEncoder().encodeToString(byteEncrypted);
+						text_cipher.setText(encrypted);
+					} catch (Exception ex) {
+						ex.printStackTrace();
+					}
+			}
+		});
+		btn_decrypt.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					while(text_key.getText().length() < 16) {
+						text_key.setText(text_key.getText()+" ");
+					}
+					String encryptText = text_cipher.getText();
+					String key = text_key.getText();
+					SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes(), "AES");
+					Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5PADDING");
+					cipher.init(Cipher.DECRYPT_MODE, skeySpec);
+					byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(encryptText));
+					text_message.setText(new String(decrypted));
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+			}
+		});
 		btn_open.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				img = null;
@@ -271,14 +303,16 @@ public class Home extends JFrame {
 		btn_embedded.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent e) {
-				
-				try {
-					
-					emb_img = new BufferedImage(img.getWidth(), img.getHeight(),BufferedImage.TYPE_INT_ARGB);
-					Integer[][] d = new Integer[img.getHeight()][img.getWidth() / 2];
-					int strlen = text_message.getText().length();
 
+				try {
+
+					emb_img = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_ARGB);
+					Integer[][] d = new Integer[img.getHeight()][img.getWidth() / 2];
+					int[] dec = MyCaculation.convertTextStringToDecArray(text_message.getText());
+					String emb_string = MyCaculation.convertDecArrayToBin(dec);
+					int strlen = emb_string.length();
 					int string_offset = 0;
+					
 					for (int i = 0; i < d.length; i++) {
 						for (int j = 0; j < d[0].length; j++) {
 							Color c = new Color(img.getRGB(j * 2, i));
@@ -293,18 +327,19 @@ public class Home extends JFrame {
 								int[] r = MyCaculation.inRange(Math.abs(d[i][j]));
 
 								int n = MyCaculation.log2(r[1] - r[0] + 1);
-								if(string_offset+n >= strlen ) {
-									n = strlen-string_offset;
+								if (string_offset + n >= strlen) {
+									n = strlen - string_offset;
 								}
-								String b = text_message.getText().substring(string_offset, string_offset + n);
+								String b = emb_string.substring(string_offset, string_offset + n);
 								string_offset += n;
+								b = MyCaculation.fixLengthOfBin(b, n);	
 								int bToDec = Integer.parseInt(b, 2);
 
 								int d_ = 0;
 								if (d[i][j] >= 0) {
-									d_ = r[0] + 1;
+									d_ = r[0] + bToDec;
 								} else {
-									d_ = -(r[0] + 1);
+									d_ = -(r[0] + bToDec);
 								}
 
 								if (d[i][j] % 2 == 0) {
@@ -336,25 +371,52 @@ public class Home extends JFrame {
 
 			}
 		});
-		
+
 		btn_save.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				img = null;
-				JFileChooser fc = new JFileChooser("E:\\Images");
-
-				FileNameExtensionFilter imageFilter = new FileNameExtensionFilter("Hình ảnh", "png", "jpg");
-				fc.setFileFilter(imageFilter);
-				fc.setMultiSelectionEnabled(false);
-				int check = fc.showDialog(btn_save, "Save");
-				if (check == JFileChooser.APPROVE_OPTION) {
-					try {
-						ImageIO.write(emb_img,".png",fc.getSelectedFile());
-						JOptionPane.showMessageDialog(btn_save, "Lưu ảnh thành công");
-					} catch (Exception ex) {
-						// TODO: handle exception
-					}
-
+				
+				
+				
+				try {
+					
+					ImageIO.write(emb_img, "png",new File("E:\\long1.png"));
 				}
+				catch (Exception ex) {
+					System.out.println("Lỗi đọc");
+					// TODO: handle exception
+				}
+				
+				
+			}
+		});
+		btn_extract.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Integer[][] d = new Integer[img.getHeight()][img.getWidth() / 2];
+				String ext_string = "";
+				int string_offset = 0;
+				for (int i = 0; i < d.length; i++) {
+					for (int j = 0; j < d[0].length; j++) {
+						Color c = new Color(img.getRGB(j * 2, i));
+						Color c_ = new Color(img.getRGB(j * 2 + 1, i));
+						int g0 = c.getRed();
+						int g1 = c_.getRed();
+						d[i][j] = g1 - g0;
+						
+					
+						int r[] = MyCaculation.inRange(d[i][j]);
+						int n = MyCaculation.log2(r[1]-r[0]+1);
+						int b = Math.abs(d[i][j])-r[0];
+						String bToBin = Integer.toBinaryString(b);
+						bToBin = MyCaculation.fixLengthOfBin(bToBin, n);
+						ext_string += bToBin;
+						
+					}
+					
+					
+				}
+				text_message.setText("");
+				int[] dec = MyCaculation.convertBinToDecArray(ext_string);
+				text_message.setText(MyCaculation.convertDecArrayToTextString(dec));
 			}
 		});
 	}
